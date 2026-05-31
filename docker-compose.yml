@@ -1,0 +1,5 @@
+services:
+  campus-fulfillment-system:
+    build: .
+    ports:
+      - "8000:8000"
