@@ -1,3 +1,4 @@
+      - name: Run tests
 name: Backend Tests
 
 on:
@@ -19,11 +20,13 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Show files
+        run: ls -R
 
-      - name: Check Python syntax
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Check syntax
         run: python -m py_compile app/database.py app/models.py app/queue_worker.py app/main.py tests/test_app.py
 
-      - name: Run tests
-        run: pytest -q
+        run: python -m pytest -q
