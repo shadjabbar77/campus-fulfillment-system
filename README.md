@@ -16,6 +16,11 @@ A FastAPI backend project that simulates an Amazon-style package pickup and lock
 * Display dashboard counts for order statuses and priorities
 * Provide JSON API endpoints for orders and system stats
 * Includes FastAPI automatic API documentation at `/docs`
+* Uses Redis + RQ for background queue processing
+* Runs with Docker Compose using separate web, worker, and Redis services
+* Shares a database volume between the web app and background worker
+* Includes automated pytest tests
+* Uses GitHub Actions CI to run tests on every push
 
 ## Technologies
 
