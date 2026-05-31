@@ -2,9 +2,10 @@
 
 ![Backend Tests](https://github.com/shadjabbar77/campus-fulfillment-system/actions/workflows/tests.yml/badge.svg)
 
-A production-style FastAPI backend project that simulates an Amazon-style campus package pickup and locker fulfillment system.
+A production-style FastAPI backend project that simulates a logistics fulfillment system for campus package pickup and locker assignment.
 
 The system supports package pickup requests, express-priority queue processing, locker assignment, order status tracking, a dashboard, JSON API endpoints, Docker Compose services, Redis-backed background jobs, PostgreSQL persistence, automated tests, and GitHub Actions CI.
+
 
 ## Features
 
