@@ -1,26 +1,12 @@
-import os
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from redis import Redis
-from rq import Queue
-from rq.exceptions import NoSuchJobError
-from rq.job import Job
 
-from app.services.campus_data import build_campus_graph, build_lockers
 from app.services.optimization_engine import optimize_order
-from app.services.fulfillment_metrics import get_fulfillment_metrics
-from app.workers.optimization_jobs import process_order_job
 
 
 router = APIRouter(prefix="/optimization", tags=["optimization"])
-
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-FULFILLMENT_QUEUE_NAME = os.getenv("FULFILLMENT_QUEUE_NAME", "fulfillment")
-
-redis_connection = Redis.from_url(REDIS_URL)
-fulfillment_queue = Queue(FULFILLMENT_QUEUE_NAME, connection=redis_connection)
 
 
 class OptimizeOrderRequest(BaseModel):
@@ -32,12 +18,8 @@ class OptimizeOrderRequest(BaseModel):
 
 
 def request_to_order(request: OptimizeOrderRequest) -> Dict[str, Any]:
-    """
-    Support both Pydantic v1 and v2.
-    """
     if hasattr(request, "model_dump"):
         return request.model_dump()
-
     return request.dict()
 
 
@@ -49,87 +31,11 @@ def optimization_health() -> Dict[str, str]:
     }
 
 
-@router.get("/campus")
-def get_campus_data() -> Dict[str, Any]:
-    graph = build_campus_graph()
-    lockers = build_lockers()
-
-    return {
-        "nodes": list(graph.keys()),
-        "edge_count": sum(len(edges) for edges in graph.values()) // 2,
-        "lockers": lockers,
-    }
-
-
 @router.post("/orders")
 def optimize_order_sync(request: OptimizeOrderRequest) -> Dict[str, Any]:
-    """
-    Synchronous optimization endpoint.
-
-    Useful for demos, tests, and direct API calls.
-    """
     order = request_to_order(request)
 
     try:
         return optimize_order(order)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-
-@router.post("/jobs")
-def enqueue_optimization_job(request: OptimizeOrderRequest) -> Dict[str, Any]:
-    """
-    Asynchronous optimization endpoint.
-
-    Enqueues the order into Redis/RQ so a worker can optimize it outside
-    the FastAPI request cycle.
-    """
-    order = request_to_order(request)
-
-    try:
-        job = fulfillment_queue.enqueue(process_order_job, order)
-    except Exception as exc:
-        raise HTTPException(
-            status_code=503,
-            detail=(
-                "Could not enqueue optimization job. "
-                "Make sure Redis is running and REDIS_URL is correct."
-            ),
-        ) from exc
-
-    return {
-        "job_id": job.id,
-        "status": job.get_status(),
-        "queue": FULFILLMENT_QUEUE_NAME,
-        "message": "Order queued for asynchronous optimization.",
-    }
-
-
-@router.get("/jobs/{job_id}")
-def get_optimization_job(job_id: str) -> Dict[str, Any]:
-    """
-    Fetch RQ job status and result.
-    """
-    try:
-        job = Job.fetch(job_id, connection=redis_connection)
-    except NoSuchJobError as exc:
-        raise HTTPException(status_code=404, detail="Job not found.") from exc
-
-    return {
-        "job_id": job.id,
-        "status": job.get_status(refresh=True),
-        "result": job.result,
-        "error": job.exc_info,
-    }
-
-
-@router.get("/metrics")
-def get_optimization_metrics() -> Dict[str, Any]:
-    """
-    Return deterministic simulated fulfillment metrics.
-
-    This compares naive round-robin locker assignment against the
-    optimized capacity-aware shortest-path assignment engine.
-    """
-    return get_fulfillment_metrics()
-
