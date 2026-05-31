@@ -1,3 +1,4 @@
+from sqlalchemy import case
 from sqlalchemy.orm import Session
 
 from app.models import PackageOrder
@@ -26,10 +27,15 @@ def get_available_locker(db: Session):
 
 
 def process_next_order(db: Session):
+    priority_order = case(
+        (PackageOrder.priority == "EXPRESS", 0),
+        else_=1
+    )
+
     order = (
         db.query(PackageOrder)
         .filter(PackageOrder.status == "PENDING")
-        .order_by(PackageOrder.created_at)
+        .order_by(priority_order, PackageOrder.created_at)
         .first()
     )
 

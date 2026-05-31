@@ -14,7 +14,8 @@
         }
 
         .cards {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
             gap: 15px;
             margin-bottom: 25px;
         }
@@ -23,7 +24,7 @@
             background: white;
             padding: 20px;
             border-radius: 10px;
-            flex: 1;
+            text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
@@ -31,7 +32,7 @@
             margin-bottom: 20px;
         }
 
-        input, button {
+        input, select, button {
             padding: 10px;
             margin: 5px;
         }
@@ -76,6 +77,16 @@
             color: gray;
             font-weight: bold;
         }
+
+        .EXPRESS {
+            color: purple;
+            font-weight: bold;
+        }
+
+        .STANDARD {
+            color: blue;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -83,10 +94,12 @@
     <h1>Campus Package Fulfillment System</h1>
 
     <div class="cards">
-        <div class="card">Pending: {{ pending_count }}</div>
-        <div class="card">Ready: {{ ready_count }}</div>
-        <div class="card">Waiting: {{ waiting_count }}</div>
-        <div class="card">Picked Up: {{ picked_up_count }}</div>
+        <div class="card">Pending<br>{{ pending_count }}</div>
+        <div class="card">Ready<br>{{ ready_count }}</div>
+        <div class="card">Waiting<br>{{ waiting_count }}</div>
+        <div class="card">Picked Up<br>{{ picked_up_count }}</div>
+        <div class="card">Express<br>{{ express_count }}</div>
+        <div class="card">Standard<br>{{ standard_count }}</div>
     </div>
 
     <h2>Create Package Pickup Request</h2>
@@ -94,6 +107,12 @@
     <form method="post" action="/orders">
         <input type="text" name="student_name" placeholder="Student name" required>
         <input type="email" name="student_email" placeholder="Student email" required>
+
+        <select name="priority">
+            <option value="STANDARD">Standard</option>
+            <option value="EXPRESS">Express</option>
+        </select>
+
         <button type="submit">Create Order</button>
     </form>
 
@@ -109,6 +128,7 @@
             <th>Student</th>
             <th>Email</th>
             <th>Package Code</th>
+            <th>Priority</th>
             <th>Status</th>
             <th>Locker</th>
             <th>Action</th>
@@ -120,6 +140,7 @@
             <td>{{ order.student_name }}</td>
             <td>{{ order.student_email }}</td>
             <td>{{ order.package_code }}</td>
+            <td class="{{ order.priority }}">{{ order.priority }}</td>
             <td class="{{ order.status }}">{{ order.status }}</td>
             <td>{{ order.locker_number or "-" }}</td>
             <td>

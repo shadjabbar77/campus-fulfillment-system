@@ -20,26 +20,19 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 def dashboard(request: Request, db: Session = Depends(get_db)):
-    orders = (
-        db.query(PackageOrder)
-        .order_by(PackageOrder.created_at.desc())
-        .all()
-    )
-
-    pending_count = db.query(PackageOrder).filter(PackageOrder.status == "PENDING").count()
-    ready_count = db.query(PackageOrder).filter(PackageOrder.status == "READY_FOR_PICKUP").count()
-    waiting_count = db.query(PackageOrder).filter(PackageOrder.status == "WAITING_FOR_LOCKER").count()
-    picked_up_count = db.query(PackageOrder).filter(PackageOrder.status == "PICKED_UP").count()
+    orders = db.query(PackageOrder).order_by(PackageOrder.created_at.desc()).all()
 
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
             "orders": orders,
-            "pending_count": pending_count,
-            "ready_count": ready_count,
-            "waiting_count": waiting_count,
-            "picked_up_count": picked_up_count,
+            "pending_count": db.query(PackageOrder).filter(PackageOrder.status == "PENDING").count(),
+            "ready_count": db.query(PackageOrder).filter(PackageOrder.status == "READY_FOR_PICKUP").count(),
+            "waiting_count": db.query(PackageOrder).filter(PackageOrder.status == "WAITING_FOR_LOCKER").count(),
+            "picked_up_count": db.query(PackageOrder).filter(PackageOrder.status == "PICKED_UP").count(),
+            "express_count": db.query(PackageOrder).filter(PackageOrder.priority == "EXPRESS").count(),
+            "standard_count": db.query(PackageOrder).filter(PackageOrder.priority == "STANDARD").count(),
         },
     )
 
@@ -48,14 +41,21 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 def create_order(
     student_name: str = Form(...),
     student_email: str = Form(...),
+    priority: str = Form("STANDARD"),
     db: Session = Depends(get_db),
 ):
+    priority = priority.upper()
+
+    if priority not in ["STANDARD", "EXPRESS"]:
+        priority = "STANDARD"
+
     package_code = f"PKG-{uuid.uuid4().hex[:8].upper()}"
 
     order = PackageOrder(
         student_name=student_name,
         student_email=student_email,
         package_code=package_code,
+        priority=priority,
         status="PENDING",
     )
 
@@ -85,11 +85,7 @@ def mark_picked_up(order_id: int, db: Session = Depends(get_db)):
 
 @app.get("/api/orders")
 def api_orders(db: Session = Depends(get_db)):
-    orders = (
-        db.query(PackageOrder)
-        .order_by(PackageOrder.created_at.desc())
-        .all()
-    )
+    orders = db.query(PackageOrder).order_by(PackageOrder.created_at.desc()).all()
 
     return [
         {
@@ -97,6 +93,7 @@ def api_orders(db: Session = Depends(get_db)):
             "student_name": order.student_name,
             "student_email": order.student_email,
             "package_code": order.package_code,
+            "priority": order.priority,
             "status": order.status,
             "locker_number": order.locker_number,
             "created_at": order.created_at.isoformat(),
@@ -112,4 +109,7 @@ def api_stats(db: Session = Depends(get_db)):
         "ready_for_pickup": db.query(PackageOrder).filter(PackageOrder.status == "READY_FOR_PICKUP").count(),
         "waiting_for_locker": db.query(PackageOrder).filter(PackageOrder.status == "WAITING_FOR_LOCKER").count(),
         "picked_up": db.query(PackageOrder).filter(PackageOrder.status == "PICKED_UP").count(),
+        "express": db.query(PackageOrder).filter(PackageOrder.priority == "EXPRESS").count(),
+        "standard": db.query(PackageOrder).filter(PackageOrder.priority == "STANDARD").count(),
     }
+
