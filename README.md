@@ -1,18 +1,19 @@
 # Campus Package Fulfillment System
 
-A FastAPI-based backend project that simulates an Amazon-style package pickup and locker fulfillment system for a campus.
+A FastAPI backend project that simulates an Amazon-style package pickup and locker fulfillment system for a campus.
 
 ## Features
 
 * Create package pickup requests
-* Store orders in a SQLite database
+* Store package orders in a SQLite database
 * Track order statuses: `PENDING`, `READY_FOR_PICKUP`, `WAITING_FOR_LOCKER`, and `PICKED_UP`
-* Process pending orders through a queue-style worker
+* Process orders using queue-style fulfillment logic
+* Prioritize `EXPRESS` orders before `STANDARD` orders
 * Automatically assign available locker numbers
 * Free lockers when packages are picked up
-* Display dashboard counts for each order status
-* Provide backend API endpoints for orders and stats
-* Includes automatic FastAPI documentation at `/docs`
+* Display dashboard counts for order statuses and priorities
+* Provide JSON API endpoints for orders and system stats
+* Includes FastAPI automatic API documentation at `/docs`
 
 ## Technologies
 
@@ -58,4 +59,4 @@ http://127.0.0.1:8000/docs
 
 ## Privacy Note
 
-The local SQLite database is excluded from GitHub because it may contain demo student names, emails, and order data.
+The local SQLite database is excluded from GitHub because it may contain demo student names, emails, package codes, and order history.
