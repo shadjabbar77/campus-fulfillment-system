@@ -12,7 +12,6 @@ class PackageOrder(Base):
     student_name = Column(String, nullable=False)
     student_email = Column(String, nullable=False)
     package_code = Column(String, nullable=False, unique=True)
-            return locker
     priority = Column(String, default="STANDARD")
     status = Column(String, default="PENDING")
     locker_number = Column(String, nullable=True)

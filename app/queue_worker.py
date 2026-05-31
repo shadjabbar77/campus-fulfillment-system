@@ -21,6 +21,7 @@ def get_available_locker(db: Session):
 
     for locker in LOCKERS:
         if locker not in used_lockers:
+            return locker
 
     return None
 
@@ -32,7 +33,6 @@ def process_next_order(db: Session):
     )
 
     order = (
-
         db.query(PackageOrder)
         .filter(PackageOrder.status == "PENDING")
         .order_by(priority_order, PackageOrder.created_at)
@@ -58,6 +58,7 @@ def process_next_order(db: Session):
 
 def process_all_pending_orders(db: Session):
     processed_orders = []
+
     while True:
         order = process_next_order(db)
 
