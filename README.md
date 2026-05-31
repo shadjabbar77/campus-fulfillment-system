@@ -2,6 +2,8 @@
 
 A FastAPI backend project that simulates an Amazon-style package pickup and locker fulfillment system for a campus.
 
+![Backend Tests](https://github.com/shadjabbar77/campus-fulfillment-system/actions/workflows/tests.yml/badge.svg)
+
 ## Features
 
 * Create package pickup requests
