@@ -12,15 +12,18 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Check Python syntax
+        run: python -m py_compile app/database.py app/models.py app/queue_worker.py app/main.py tests/test_app.py
+
       - name: Run tests
-        run: pytest
+        run: pytest -q
