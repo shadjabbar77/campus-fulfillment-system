@@ -10,6 +10,7 @@ from rq.job import Job
 
 from app.services.campus_data import build_campus_graph, build_lockers
 from app.services.optimization_engine import optimize_order
+from app.services.fulfillment_metrics import get_fulfillment_metrics
 from app.workers.optimization_jobs import process_order_job
 
 
@@ -120,3 +121,15 @@ def get_optimization_job(job_id: str) -> Dict[str, Any]:
         "result": job.result,
         "error": job.exc_info,
     }
+
+
+@router.get("/metrics")
+def get_optimization_metrics() -> Dict[str, Any]:
+    """
+    Return deterministic simulated fulfillment metrics.
+
+    This compares naive round-robin locker assignment against the
+    optimized capacity-aware shortest-path assignment engine.
+    """
+    return get_fulfillment_metrics()
+
