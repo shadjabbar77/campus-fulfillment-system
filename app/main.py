@@ -28,7 +28,6 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
             "request": request,
             "orders": orders,
             "pending_count": db.query(PackageOrder).filter(PackageOrder.status == "PENDING").count(),
-
             "ready_count": db.query(PackageOrder).filter(PackageOrder.status == "READY_FOR_PICKUP").count(),
             "waiting_count": db.query(PackageOrder).filter(PackageOrder.status == "WAITING_FOR_LOCKER").count(),
             "picked_up_count": db.query(PackageOrder).filter(PackageOrder.status == "PICKED_UP").count(),
@@ -51,10 +50,10 @@ def create_order(
         priority = "STANDARD"
 
     package_code = f"PKG-{uuid.uuid4().hex[:8].upper()}"
+
     order = PackageOrder(
         student_name=student_name,
         student_email=student_email,
-
         package_code=package_code,
         priority=priority,
         status="PENDING",
@@ -79,9 +78,11 @@ def mark_picked_up(order_id: int, db: Session = Depends(get_db)):
     if order:
         order.status = "PICKED_UP"
         order.locker_number = None
+    ]
         db.commit()
 
     return RedirectResponse("/", status_code=303)
+
 
 @app.get("/api/orders")
 def api_orders(db: Session = Depends(get_db)):
@@ -94,13 +95,11 @@ def api_orders(db: Session = Depends(get_db)):
             "student_email": order.student_email,
             "package_code": order.package_code,
             "priority": order.priority,
-        "standard": db.query(PackageOrder).filter(PackageOrder.priority == "STANDARD").count(),
             "status": order.status,
             "locker_number": order.locker_number,
             "created_at": order.created_at.isoformat(),
         }
         for order in orders
-    ]
 
 
 @app.get("/api/stats")
@@ -109,6 +108,7 @@ def api_stats(db: Session = Depends(get_db)):
         "pending": db.query(PackageOrder).filter(PackageOrder.status == "PENDING").count(),
         "ready_for_pickup": db.query(PackageOrder).filter(PackageOrder.status == "READY_FOR_PICKUP").count(),
         "waiting_for_locker": db.query(PackageOrder).filter(PackageOrder.status == "WAITING_FOR_LOCKER").count(),
+git commit -m "Fix file formatting for backend tests"
         "picked_up": db.query(PackageOrder).filter(PackageOrder.status == "PICKED_UP").count(),
         "express": db.query(PackageOrder).filter(PackageOrder.priority == "EXPRESS").count(),
         "standard": db.query(PackageOrder).filter(PackageOrder.priority == "STANDARD").count(),

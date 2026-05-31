@@ -15,6 +15,5 @@ class PackageOrder(Base):
     priority = Column(String, default="STANDARD")
     status = Column(String, default="PENDING")
     locker_number = Column(String, nullable=True)
-
-    created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+        else_=1,
