@@ -30,6 +30,7 @@ def make_client(tmp_path):
             db.close()
 
     app.dependency_overrides.clear()
+
     app.dependency_overrides[get_db] = override_get_db
 
     return TestClient(app)
@@ -67,20 +68,19 @@ def test_express_order_gets_first_locker(tmp_path):
             "priority": "STANDARD",
         },
     )
-
     client.post(
         "/orders",
         data={
             "student_name": "Jose",
             "student_email": "jose@example.com",
             "priority": "EXPRESS",
+    client.post(f"/pickup/{order['id']}")
         },
     )
 
     client.post("/process")
 
     orders = client.get("/api/orders").json()
-
     jose = next(order for order in orders if order["student_name"] == "Jose")
 
     assert jose["priority"] == "EXPRESS"
@@ -103,7 +103,6 @@ def test_pickup_updates_status(tmp_path):
 
     order = client.get("/api/orders").json()[0]
 
-    client.post(f"/pickup/{order['id']}")
 
     updated_order = client.get("/api/orders").json()[0]
 

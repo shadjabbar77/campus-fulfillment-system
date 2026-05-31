@@ -3,7 +3,6 @@ import uuid
 from fastapi import Depends, FastAPI, Form, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.database import Base, engine, get_db
@@ -40,6 +39,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 @app.post("/orders")
 def create_order(
     student_name: str = Form(...),
+def mark_picked_up(order_id: int, db: Session = Depends(get_db)):
     student_email: str = Form(...),
     priority: str = Form("STANDARD"),
     db: Session = Depends(get_db),
@@ -72,16 +72,15 @@ def process_queue(db: Session = Depends(get_db)):
 
 
 @app.post("/pickup/{order_id}")
-def mark_picked_up(order_id: int, db: Session = Depends(get_db)):
     order = db.get(PackageOrder, order_id)
 
     if order:
         order.status = "PICKED_UP"
         order.locker_number = None
-    ]
         db.commit()
 
     return RedirectResponse("/", status_code=303)
+    ]
 
 
 @app.get("/api/orders")
@@ -108,7 +107,6 @@ def api_stats(db: Session = Depends(get_db)):
         "pending": db.query(PackageOrder).filter(PackageOrder.status == "PENDING").count(),
         "ready_for_pickup": db.query(PackageOrder).filter(PackageOrder.status == "READY_FOR_PICKUP").count(),
         "waiting_for_locker": db.query(PackageOrder).filter(PackageOrder.status == "WAITING_FOR_LOCKER").count(),
-git commit -m "Fix file formatting for backend tests"
         "picked_up": db.query(PackageOrder).filter(PackageOrder.status == "PICKED_UP").count(),
         "express": db.query(PackageOrder).filter(PackageOrder.priority == "EXPRESS").count(),
         "standard": db.query(PackageOrder).filter(PackageOrder.priority == "STANDARD").count(),

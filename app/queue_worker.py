@@ -1,19 +1,10 @@
 from sqlalchemy import case
+        (PackageOrder.priority == "EXPRESS", 0),
 from sqlalchemy.orm import Session
 
 from app.models import PackageOrder
 
-LOCKERS = [
-    "A1",
-    "A2",
-    "A3",
-    "B1",
-    "B2",
-    "B3",
-    "C1",
-    "C2",
-    "C3",
-]
+LOCKERS = ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3"]
 
 
 def get_available_locker(db: Session):
@@ -34,7 +25,7 @@ def get_available_locker(db: Session):
 
 def process_next_order(db: Session):
     priority_order = case(
-        (PackageOrder.priority == "EXPRESS", 0),
+        else_=1,
     )
 
     order = (
@@ -51,14 +42,15 @@ def process_next_order(db: Session):
 
     if locker is None:
         order.status = "WAITING_FOR_LOCKER"
-    return order
     else:
         order.status = "READY_FOR_PICKUP"
+from fastapi.templating import Jinja2Templates
         order.locker_number = locker
 
     db.commit()
     db.refresh(order)
 
+    return order
 
 
 def process_all_pending_orders(db: Session):
