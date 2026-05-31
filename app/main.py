@@ -1,3 +1,4 @@
+app.mount("/static", StaticFiles(directory="static"), name="static")
 import uuid
 
 from fastapi import Depends, FastAPI, Form, Request
@@ -15,7 +16,6 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Campus Package Fulfillment System")
 
 templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/")
@@ -55,6 +55,7 @@ def create_order(
         student_name=student_name,
         student_email=student_email,
         package_code=package_code,
+    return [
         priority=priority,
         status="PENDING",
     )
@@ -87,7 +88,6 @@ def mark_picked_up(order_id: int, db: Session = Depends(get_db)):
 def api_orders(db: Session = Depends(get_db)):
     orders = db.query(PackageOrder).order_by(PackageOrder.created_at.desc()).all()
 
-    return [
         {
             "id": order.id,
             "student_name": order.student_name,
@@ -112,4 +112,3 @@ def api_stats(db: Session = Depends(get_db)):
         "express": db.query(PackageOrder).filter(PackageOrder.priority == "EXPRESS").count(),
         "standard": db.query(PackageOrder).filter(PackageOrder.priority == "STANDARD").count(),
     }
-
