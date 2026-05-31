@@ -17,4 +17,3 @@ class PackageOrder(Base):
     locker_number = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
-        (PackageOrder.priority == "EXPRESS", 0),

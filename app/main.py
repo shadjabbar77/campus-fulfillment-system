@@ -1,9 +1,7 @@
+import uuid
 
-from fastapi import Depends, FastAPI, Form, Request
+from fastapi import Depends, FastAPI, Form
 from fastapi.responses import RedirectResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
 
 from app.database import Base, engine, get_db
 from app.models import PackageOrder
@@ -13,37 +11,18 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Campus Package Fulfillment System")
 
-templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
 
 @app.get("/")
-def dashboard(request: Request, db: Session = Depends(get_db)):
-    orders = db.query(PackageOrder).order_by(PackageOrder.created_at.desc()).all()
-
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "orders": orders,
-            "pending_count": db.query(PackageOrder).filter(PackageOrder.status == "PENDING").count(),
-            "ready_count": db.query(PackageOrder).filter(PackageOrder.status == "READY_FOR_PICKUP").count(),
-            "waiting_count": db.query(PackageOrder).filter(PackageOrder.status == "WAITING_FOR_LOCKER").count(),
-            "picked_up_count": db.query(PackageOrder).filter(PackageOrder.status == "PICKED_UP").count(),
-            "express_count": db.query(PackageOrder).filter(PackageOrder.priority == "EXPRESS").count(),
-            "standard_count": db.query(PackageOrder).filter(PackageOrder.priority == "STANDARD").count(),
-        },
-    )
+def dashboard():
+    return {"message": "Campus Package Fulfillment System"}
 
 
 @app.post("/orders")
-        priority=priority,
-id.uuid4().hex[:8].upperer_id}")
 def create_order(
-    student_name: str = Form(...),
-    student_email: str = Form(...),
-    priority: str = Form("STANDARD"),
-    db: Session = Depends(get_db),
+    student_name=Form(...),
+    student_email=Form(...),
+    priority=Form("STANDARD"),
+    db=Depends(get_db),
 ):
     priority = priority.upper()
 
@@ -56,6 +35,7 @@ def create_order(
         student_name=student_name,
         student_email=student_email,
         package_code=package_code,
+        priority=priority,
         status="PENDING",
     )
 
@@ -66,11 +46,18 @@ def create_order(
 
 
 @app.post("/process")
-def process_queue(db: Session = Depends(get_db)):
+def process_queue(db=Depends(get_db)):
     process_all_pending_orders(db)
     return RedirectResponse("/", status_code=303)
 
-def mark_picked_up(order_id: int, db: Session = Depends(get_db)):
+
+@app.post("/pickup/{order_id}")
+def mark_picked_up(order_id, db=Depends(get_db)):
+    try:
+        order_id = int(order_id)
+    except ValueError:
+        return RedirectResponse("/", status_code=303)
+
     order = db.get(PackageOrder, order_id)
 
     if order:
@@ -82,7 +69,7 @@ def mark_picked_up(order_id: int, db: Session = Depends(get_db)):
 
 
 @app.get("/api/orders")
-def api_orders(db: Session = Depends(get_db)):
+def api_orders(db=Depends(get_db)):
     orders = db.query(PackageOrder).order_by(PackageOrder.created_at.desc()).all()
 
     return [
@@ -101,7 +88,7 @@ def api_orders(db: Session = Depends(get_db)):
 
 
 @app.get("/api/stats")
-def api_stats(db: Session = Depends(get_db)):
+def api_stats(db=Depends(get_db)):
     return {
         "pending": db.query(PackageOrder).filter(PackageOrder.status == "PENDING").count(),
         "ready_for_pickup": db.query(PackageOrder).filter(PackageOrder.status == "READY_FOR_PICKUP").count(),

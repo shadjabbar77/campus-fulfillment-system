@@ -24,6 +24,7 @@ def get_available_locker(db: Session):
 
 def process_next_order(db: Session):
     priority_order = case(
+        (PackageOrder.priority == "EXPRESS", 0),
         else_=1,
     )
 
@@ -41,7 +42,6 @@ def process_next_order(db: Session):
 
     if locker is None:
         order.status = "WAITING_FOR_LOCKER"
-import uuid
     else:
         order.status = "READY_FOR_PICKUP"
         order.locker_number = locker
