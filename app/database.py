@@ -2,11 +2,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = "sqlite:///./packages.db"
+from sqlalchemy import Column, DateTime, Integer, String
 
 engine = create_engine(
     DATABASE_URL,
-from sqlalchemy import Column, DateTime, Integer, String
-    stColumn(DateTime, default=datetime.now)
     connect_args={"check_same_thread": False},
 )
 

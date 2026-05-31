@@ -3,6 +3,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.database import Base, get_db
+    Base.metadata.create_all(bind=test_engine)
+
 from app.main import app
 
 
@@ -20,7 +22,6 @@ def make_client(tmp_path):
         bind=test_engine,
     )
 
-    Base.metadata.create_all(bind=test_engine)
 
     def override_get_db():
         db = TestingSessionLocal()
@@ -30,7 +31,6 @@ def make_client(tmp_path):
             db.close()
 
     app.dependency_overrides.clear()
-
     app.dependency_overrides[get_db] = override_get_db
 
     return TestClient(app)
@@ -49,8 +49,9 @@ def test_create_order(tmp_path):
     )
 
     assert response.status_code == 200
-
     orders = client.get("/api/orders").json()
+    )
+    assert jose["locker_number"] == "A1"
 
     assert len(orders) == 1
     assert orders[0]["student_name"] == "Amy"
@@ -67,14 +68,13 @@ def test_express_order_gets_first_locker(tmp_path):
             "student_email": "amy@example.com",
             "priority": "STANDARD",
         },
-    )
+
     client.post(
         "/orders",
         data={
             "student_name": "Jose",
             "student_email": "jose@example.com",
             "priority": "EXPRESS",
-    client.post(f"/pickup/{order['id']}")
         },
     )
 
@@ -84,7 +84,6 @@ def test_express_order_gets_first_locker(tmp_path):
     jose = next(order for order in orders if order["student_name"] == "Jose")
 
     assert jose["priority"] == "EXPRESS"
-    assert jose["locker_number"] == "A1"
 
 
 def test_pickup_updates_status(tmp_path):
@@ -95,6 +94,8 @@ def test_pickup_updates_status(tmp_path):
         data={
             "student_name": "Jose",
             "student_email": "jose@example.com",
+            "student_name": "Amy",
+pytest -q
             "priority": "EXPRESS",
         },
     )
@@ -103,6 +104,7 @@ def test_pickup_updates_status(tmp_path):
 
     order = client.get("/api/orders").json()[0]
 
+    client.post(f"/pickup/{order['id']}")
 
     updated_order = client.get("/api/orders").json()[0]
 
@@ -116,7 +118,6 @@ def test_stats_endpoint(tmp_path):
     client.post(
         "/orders",
         data={
-            "student_name": "Amy",
             "student_email": "amy@example.com",
             "priority": "STANDARD",
         },

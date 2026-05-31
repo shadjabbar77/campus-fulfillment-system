@@ -1,160 +1,65 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html>
-<head>
+  <head>
     <title>Campus Package Fulfillment System</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            padding: 30px;
-        }
-
-        h1 {
-            text-align: center;
-        }
-
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        form {
-            margin-bottom: 20px;
-        }
-
-        input, select, button {
-            padding: 10px;
-            margin: 5px;
-        }
-
-        button {
-            background: black;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        table {
-            width: 100%;
-            background: white;
-            border-collapse: collapse;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-        }
-
-        .PENDING {
-            color: orange;
-            font-weight: bold;
-        }
-
-        .READY_FOR_PICKUP {
-            color: green;
-            font-weight: bold;
-        }
-
-        .WAITING_FOR_LOCKER {
-            color: red;
-            font-weight: bold;
-        }
-
-        .PICKED_UP {
-            color: gray;
-            font-weight: bold;
-        }
-
-        .EXPRESS {
-            color: purple;
-            font-weight: bold;
-        }
-
-        .STANDARD {
-            color: blue;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <h1>Campus Package Fulfillment System</h1>
 
-    <div class="cards">
-        <div class="card">Pending<br>{{ pending_count }}</div>
-        <div class="card">Ready<br>{{ ready_count }}</div>
-        <div class="card">Waiting<br>{{ waiting_count }}</div>
-        <div class="card">Picked Up<br>{{ picked_up_count }}</div>
-        <div class="card">Express<br>{{ express_count }}</div>
-        <div class="card">Standard<br>{{ standard_count }}</div>
-    </div>
-
-    <h2>Create Package Pickup Request</h2>
-
+    <h2>Create Package Order</h2>
     <form method="post" action="/orders">
-        <input type="text" name="student_name" placeholder="Student name" required>
-        <input type="email" name="student_email" placeholder="Student email" required>
-
-        <select name="priority">
-            <option value="STANDARD">Standard</option>
-            <option value="EXPRESS">Express</option>
-        </select>
-
-        <button type="submit">Create Order</button>
+      <input name="student_name" placeholder="Student name" required>
+      <input name="student_email" placeholder="Student email" required>
+      <select name="priority">
+        <option value="STANDARD">Standard</option>
+        <option value="EXPRESS">Express</option>
+      </select>
+      <button type="submit">Create Order</button>
     </form>
 
+    <h2>Queue</h2>
     <form method="post" action="/process">
-        <button type="submit">Process Queue</button>
+      <button type="submit">Process Queue</button>
     </form>
 
+    <h2>Stats</h2>
+    <p>Pending: {{ pending_count }}</p>
+    <p>Ready: {{ ready_count }}</p>
+    <p>Waiting: {{ waiting_count }}</p>
+    <p>Picked up: {{ picked_up_count }}</p>
+    <p>Express: {{ express_count }}</p>
+    <p>Standard: {{ standard_count }}</p>
     <h2>Orders</h2>
-
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Student</th>
-            <th>Email</th>
-            <th>Package Code</th>
-            <th>Priority</th>
-            <th>Status</th>
-            <th>Locker</th>
-            <th>Action</th>
-        </tr>
-
-        {% for order in orders %}
-        <tr>
-            <td>{{ order.id }}</td>
-            <td>{{ order.student_name }}</td>
-            <td>{{ order.student_email }}</td>
-            <td>{{ order.package_code }}</td>
-            <td class="{{ order.priority }}">{{ order.priority }}</td>
-            <td class="{{ order.status }}">{{ order.status }}</td>
-            <td>{{ order.locker_number or "-" }}</td>
-            <td>
-                {% if order.status == "READY_FOR_PICKUP" %}
-                <form method="post" action="/pickup/{{ order.id }}">
-                    <button type="submit">Mark Picked Up</button>
-                </form>
-                {% else %}
-                -
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
+    <table border="1">
+          {% endif %}
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Code</th>
+        <th>Priority</th>
+        <th>Status</th>
+        <th>Locker</th>
+        <th>Action</th>
+      </tr>
+      {% for order in orders %}
+      <tr>
+        <td>{{ order.id }}</td>
+        <td>{{ order.student_name }}</td>
+        <td>{{ order.student_email }}</td>
+        <td>{{ order.package_code }}</td>
+        <td>{{ order.priority }}</td>
+        <td>{{ order.status }}</td>
+        <td>{{ order.locker_number or "" }}</td>
+        <td>
+          {% if order.status == "READY_FOR_PICKUP" %}
+          <form method="post" action="/pickup/{{ order.id }}">
+            <button type="submit">Mark Picked Up</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
     </table>
-
-</body>
+  </body>
 </html>

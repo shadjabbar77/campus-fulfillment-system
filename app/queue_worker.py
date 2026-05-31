@@ -1,5 +1,4 @@
 from sqlalchemy import case
-        (PackageOrder.priority == "EXPRESS", 0),
 from sqlalchemy.orm import Session
 
 from app.models import PackageOrder
@@ -42,9 +41,9 @@ def process_next_order(db: Session):
 
     if locker is None:
         order.status = "WAITING_FOR_LOCKER"
+import uuid
     else:
         order.status = "READY_FOR_PICKUP"
-from fastapi.templating import Jinja2Templates
         order.locker_number = locker
 
     db.commit()

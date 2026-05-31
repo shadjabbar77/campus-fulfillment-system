@@ -1,8 +1,8 @@
-import uuid
 
 from fastapi import Depends, FastAPI, Form, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.database import Base, engine, get_db
@@ -37,9 +37,10 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 
 
 @app.post("/orders")
+        priority=priority,
+id.uuid4().hex[:8].upperer_id}")
 def create_order(
     student_name: str = Form(...),
-def mark_picked_up(order_id: int, db: Session = Depends(get_db)):
     student_email: str = Form(...),
     priority: str = Form("STANDARD"),
     db: Session = Depends(get_db),
@@ -55,7 +56,6 @@ def mark_picked_up(order_id: int, db: Session = Depends(get_db)):
         student_name=student_name,
         student_email=student_email,
         package_code=package_code,
-        priority=priority,
         status="PENDING",
     )
 
@@ -70,8 +70,7 @@ def process_queue(db: Session = Depends(get_db)):
     process_all_pending_orders(db)
     return RedirectResponse("/", status_code=303)
 
-
-@app.post("/pickup/{order_id}")
+def mark_picked_up(order_id: int, db: Session = Depends(get_db)):
     order = db.get(PackageOrder, order_id)
 
     if order:
@@ -80,7 +79,6 @@ def process_queue(db: Session = Depends(get_db)):
         db.commit()
 
     return RedirectResponse("/", status_code=303)
-    ]
 
 
 @app.get("/api/orders")
@@ -99,6 +97,7 @@ def api_orders(db: Session = Depends(get_db)):
             "created_at": order.created_at.isoformat(),
         }
         for order in orders
+    ]
 
 
 @app.get("/api/stats")
