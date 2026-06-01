@@ -75,7 +75,7 @@
         <div class="card">Standard<br>{{ standard_count }}</div>
     </div>
 
-    <h2>Create Package Pickup Request</h2>
+    <h2>Create Optimized Package Pickup Request</h2>
 
     <form method="post" action="/orders">
         <input type="text" name="student_name" placeholder="Student name" required>
@@ -86,12 +86,54 @@
             <option value="EXPRESS">Express</option>
         </select>
 
-        <button type="submit">Create Order</button>
+        <label style="font-size: 12px; display: inline-flex; flex-direction: column; align-items: center; margin: 5px; vertical-align: middle;">
+            Delivery Location
+            <select name="destination" style="margin: 5px 0 0 0; text-align: center;">
+                {% for destination in destinations %}
+                    <option value="{{ destination }}">{{ destination }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <select name="size">
+            <option value="small">Small</option>
+            <option value="medium" selected>Medium</option>
+            <option value="large">Large</option>
+        </select>
+
+        <label style="font-size: 12px; display: inline-flex; flex-direction: column; align-items: center; margin: 5px; vertical-align: middle;">
+            Deadline Minutes
+            <input type="number" name="deadline_minutes" value="30" min="1" style="margin: 5px 0 0 0; text-align: center;">
+        </label>
+
+        <button type="submit">Create Optimized Order</button>
     </form>
 
     <form method="post" action="/process">
         <button type="submit">Process Queue</button>
     </form>
+
+    {% if optimizer_error %}
+        <div class="card" style="color: red;">
+            <strong>Error:</strong> {{ optimizer_error }}
+        </div>
+    {% endif %}
+
+    {% if optimizer_result %}
+        <div class="card">
+            <h3>Optimization Result</h3>
+            <p><strong>Destination:</strong> {{ optimizer_result.destination }}</p>
+            <p><strong>Priority:</strong> {{ optimizer_result.priority }}</p>
+            <p><strong>Package Size:</strong> {{ optimizer_result.size }}</p>
+            <p><strong>Assigned Locker:</strong> {{ optimizer_result.assigned_locker_name }}</p>
+            <p><strong>Locker Location:</strong> {{ optimizer_result.assigned_locker_location }}</p>
+            <p><strong>Route:</strong> {{ optimizer_result.route | join(" → ") }}</p>
+            <p><strong>Distance:</strong> {{ optimizer_result.distance_m }} m</p>
+            <p><strong>Estimated Delivery:</strong> {{ optimizer_result.estimated_delivery_minutes }} minutes</p>
+            <p><strong>SLA Status:</strong> {{ optimizer_result.sla_status }}</p>
+            <p><strong>Decision Score:</strong> {{ optimizer_result.decision_score }}</p>
+        </div>
+    {% endif %}
 
     <h2>Orders</h2>
 
@@ -117,9 +159,13 @@
             <td class="{{ order.status }}">{{ order.status }}</td>
             <td>{{ order.locker_number or "-" }}</td>
             <td>
-                <form method="post" action="/pickup/{{ order.id }}">
-                    <button type="submit">Mark Picked Up</button>
-                </form>
+                {% if order.status == "READY_FOR_PICKUP" %}
+                    <form method="post" action="/pickup/{{ order.id }}">
+                        <button type="submit">Mark Picked Up</button>
+                    </form>
+                {% else %}
+                    <span style="color: #6b7280;">Not available</span>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}

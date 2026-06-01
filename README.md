@@ -2,7 +2,7 @@
 
 ![Backend Tests](https://github.com/shadjabbar77/campus-fulfillment-system/actions/workflows/tests.yml/badge.svg)
 
-CampusFlow is a production-style FastAPI backend that simulates campus package pickup, locker fulfillment, order tracking, asynchronous fulfillment processing, and logistics optimization.
+CampusFlow is a production-style FastAPI backend that simulates campus package pickup, locker fulfillment, order tracking, asynchronous fulfillment processing, and logistics optimization through one merged dashboard.
 
 The system models a real campus package workflow where students create pickup requests, express orders are prioritized, lockers are assigned automatically, fulfillment jobs run through a Redis/RQ worker queue, and order data can be stored with PostgreSQL through Docker Compose.
 
@@ -22,6 +22,7 @@ CampusFlow also includes an optimization layer with Dijkstra shortest-path routi
 * Created benchmark reporting for naive vs. optimized fulfillment behavior.
 * Added API load testing for backend performance checks.
 * Added automated Pytest coverage and GitHub Actions CI.
+* Merged the order creation and optimization workflows into one dashboard so each package request can include destination, package size, deadline, optimized locker assignment, and queue processing in a single flow.
 
 ---
 
@@ -46,6 +47,9 @@ CampusFlow also includes an optimization layer with Dijkstra shortest-path routi
 * Run automated tests with Pytest.
 * Run CI checks with GitHub Actions.
 * Start the full system with Docker Compose.
+* Create optimized package pickup requests from one dashboard.
+* Select delivery location, package size, priority, and deadline during order creation.
+* Preserve optimized locker assignments during queue processing.
 
 ---
 
@@ -145,13 +149,15 @@ Python, FastAPI, PostgreSQL, Redis, RQ, SQLAlchemy, Jinja2, Uvicorn, Docker Comp
 ### Main App
 
 ```txt
-GET  /
+GET /
 POST /orders
 POST /process
 POST /pickup/{order_id}
-GET  /api/orders
-GET  /api/stats
-GET  /docs
+GET /optimizer
+POST /optimizer
+GET /api/orders
+GET /api/stats
+GET /docs
 ```
 
 ### Optimization API
@@ -168,20 +174,19 @@ GET  /optimization/jobs/{job_id}
 
 ## How to Run Locally
 
+cd ~/campus-fulfillment-system
+python3 -m uvicorn app.main:app --reload
+
 Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Start the local FastAPI server from the backend folder:
-
-```bash
-cd backend
-PYTHONPATH=. uvicorn app.main:app --reload
-```
 
 Open the dashboard:
+
+The main dashboard combines order creation, delivery-location selection, package-size selection, deadline input, optimized locker assignment, order tracking, and queue processing in one page.
 
 ```txt
 http://127.0.0.1:8000

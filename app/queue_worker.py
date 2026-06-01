@@ -13,7 +13,7 @@ def get_available_locker(db: Session):
         .all()
     )
 
-    used_lockers = {order.locker_number for order in active_orders}
+    used_lockers = {order.locker_number for order in active_orders if order.locker_number}
 
     for locker in LOCKERS:
         if locker not in used_lockers:
@@ -38,13 +38,16 @@ def process_next_order(db: Session):
     if not order:
         return None
 
-    locker = get_available_locker(db)
-
-    if locker is None:
-        order.status = "WAITING_FOR_LOCKER"
-    else:
+    if order.locker_number:
         order.status = "READY_FOR_PICKUP"
-        order.locker_number = locker
+    else:
+        locker = get_available_locker(db)
+
+        if locker is None:
+            order.status = "WAITING_FOR_LOCKER"
+        else:
+            order.status = "READY_FOR_PICKUP"
+            order.locker_number = locker
 
     db.commit()
     db.refresh(order)
