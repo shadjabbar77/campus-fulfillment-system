@@ -76,10 +76,18 @@ def create_order(
 
 @app.post("/process")
 def process_queue(db: Session = Depends(get_db)):
+    """
+    Process pending package orders.
+
+    For local demo reliability, this immediately processes pending orders
+    even if the Redis/RQ worker is not running.
+    """
     try:
         task_queue.enqueue(process_queue_job)
     except RedisError:
-        process_all_pending_orders(db)
+        pass
+
+    process_all_pending_orders(db)
 
     return RedirectResponse("/", status_code=303)
 
@@ -125,3 +133,58 @@ def api_stats(db: Session = Depends(get_db)):
         "express": db.query(PackageOrder).filter(PackageOrder.priority == "EXPRESS").count(),
         "standard": db.query(PackageOrder).filter(PackageOrder.priority == "STANDARD").count(),
     }
+
+@app.get("/optimizer")
+def optimizer_page(request: Request):
+    from app.services.campus_data import build_campus_graph
+
+    graph = build_campus_graph()
+
+    return templates.TemplateResponse(
+        "optimizer.html",
+        {
+            "request": request,
+            "destinations": sorted(graph.keys()),
+            "result": None,
+            "error": None,
+        },
+    )
+
+
+@app.post("/optimizer")
+def run_optimizer(
+    request: Request,
+    destination: str = Form(...),
+    priority: str = Form("express"),
+    size: str = Form("medium"),
+    deadline_minutes: int = Form(30),
+):
+    from app.services.campus_data import build_campus_graph
+    from app.services.optimization_engine import optimize_order
+
+    graph = build_campus_graph()
+
+    order = {
+        "id": 1,
+        "destination": destination,
+        "priority": priority,
+        "size": size,
+        "deadline_minutes": deadline_minutes,
+    }
+
+    try:
+        result = optimize_order(order)
+        error = None
+    except ValueError as exc:
+        result = None
+        error = str(exc)
+
+    return templates.TemplateResponse(
+        "optimizer.html",
+        {
+            "request": request,
+            "destinations": sorted(graph.keys()),
+            "result": result,
+            "error": error,
+        },
+    )
