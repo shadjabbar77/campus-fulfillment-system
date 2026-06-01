@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CampusFlow Optimizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            padding: 40px;
+            color: #111827;
+        }
+
+        .container {
+            max-width: 980px;
+            margin: auto;
+            background: white;
+            padding: 36px;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            font-size: 38px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #4b5563;
+            margin-bottom: 28px;
+            font-size: 17px;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+        }
+
+        button {
+            grid-column: span 4;
+            padding: 13px 18px;
+            border: none;
+            border-radius: 10px;
+            background: #111827;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-top: 24px;
+        }
+
+        .card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .metric {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .label {
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .result {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            padding: 20px;
+            border-radius: 14px;
+            margin-top: 24px;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            padding: 20px;
+            border-radius: 14px;
+            margin-top: 24px;
+            color: #991b1b;
+        }
+
+        a {
+            color: #111827;
+            font-weight: bold;
+        }
+
+        @media (max-width: 800px) {
+            form, .grid {
+                grid-template-columns: 1fr;
+            }
+
+            button {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <p><a href="/">← Back to Orders Dashboard</a></p>
+
+        <h1>CampusFlow Optimizer</h1>
+        <div class="subtitle">
+            Choose a package destination, priority, size, and deadline.
+            CampusFlow selects the best locker using shortest-path routing,
+            locker constraints, ETA calculation, and SLA tracking.
+        </div>
+
+        <form method="post" action="/optimizer">
+            <div>
+                <label>Destination</label>
+                <select name="destination">
+                    {% for destination in destinations %}
+                        <option value="{{ destination }}">{{ destination }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>Priority</label>
+                <select name="priority">
+                    <option value="express">Express</option>
+                    <option value="standard">Standard</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Package Size</label>
+                <select name="size">
+                    <option value="small">Small</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="large">Large</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Deadline Minutes</label>
+                <input type="number" name="deadline_minutes" value="30" min="1">
+            </div>
+
+            <button type="submit">Optimize Package Assignment</button>
+        </form>
+
+        <div class="grid">
+            <div class="card">
+                <div class="metric">Dijkstra</div>
+                <div class="label">Shortest-path routing</div>
+            </div>
+
+            <div class="card">
+                <div class="metric">Heap</div>
+                <div class="label">Priority scheduling</div>
+            </div>
+
+            <div class="card">
+                <div class="metric">81.43%</div>
+                <div class="label">Simulated distance reduction</div>
+            </div>
+
+            <div class="card">
+                <div class="metric">1000</div>
+                <div class="label">Benchmark orders</div>
+            </div>
+        </div>
+
+        {% if error %}
+            <div class="error">
+                <strong>Error:</strong> {{ error }}
+            </div>
+        {% endif %}
+
+        {% if result %}
+            <div class="result">
+                <h2>Optimization Result</h2>
+                <p><strong>Destination:</strong> {{ result.destination }}</p>
+                <p><strong>Priority:</strong> {{ result.priority }}</p>
+                <p><strong>Package Size:</strong> {{ result.size }}</p>
+                <p><strong>Assigned Locker:</strong> {{ result.assigned_locker_name }}</p>
+                <p><strong>Locker Location:</strong> {{ result.assigned_locker_location }}</p>
+                <p><strong>Route:</strong> {{ result.route | join(" → ") }}</p>
+                <p><strong>Distance:</strong> {{ result.distance_m }} m</p>
+                <p><strong>Estimated Delivery:</strong> {{ result.estimated_delivery_minutes }} minutes</p>
+                <p><strong>SLA Status:</strong> {{ result.sla_status }}</p>
+                <p><strong>Decision Score:</strong> {{ result.decision_score }}</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
